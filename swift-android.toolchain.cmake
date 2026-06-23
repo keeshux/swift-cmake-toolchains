@@ -2,20 +2,29 @@
 #
 # SPDX-License-Identifier: MIT
 
-set(SWIFT_ANDROID_ENV_DEFINE_ONLY TRUE)
-include("${CMAKE_CURRENT_LIST_DIR}/swift-android-env.cmake")
-unset(SWIFT_ANDROID_ENV_DEFINE_ONLY)
+include("${CMAKE_CURRENT_LIST_DIR}/swift-macros.cmake")
 swift_android_resolve_inputs()
+list(APPEND CMAKE_TRY_COMPILE_PLATFORM_VARIABLES
+    CMAKE_ANDROID_NDK
+    ANDROID_ABI
+    ANDROID_PLATFORM
+    ANDROID_STL
+    SWIFT_VERSION
+)
 
 # Start from the official NDK toolchain
-set(ANDROID_ABI ${SWIFT_ANDROID_ABI})
-set(ANDROID_NATIVE_API_LEVEL ${SWIFT_ANDROID_API_LEVEL})
-include("${ANDROID_NDK_HOME}/build/cmake/android.toolchain.cmake")
+set(_swift_android_cxx_implicit_excludes "$ENV{CMAKE_CXX_IMPLICIT_LINK_LIBRARIES_EXCLUDE}")
+list(APPEND _swift_android_cxx_implicit_excludes c++ -lc++)
+list(REMOVE_DUPLICATES _swift_android_cxx_implicit_excludes)
+set(ENV{CMAKE_CXX_IMPLICIT_LINK_LIBRARIES_EXCLUDE} "${_swift_android_cxx_implicit_excludes}")
+unset(_swift_android_cxx_implicit_excludes)
+include("${CMAKE_ANDROID_NDK}/build/cmake/android.toolchain.cmake")
 if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/swift-android-post.toolchain.cmake")
     include("${CMAKE_CURRENT_LIST_DIR}/swift-android-post.toolchain.cmake")
 endif()
-
-swift_android_resolve_inputs()
+if(DEFINED CMAKE_CXX_IMPLICIT_LINK_LIBRARIES)
+    list(REMOVE_ITEM CMAKE_CXX_IMPLICIT_LINK_LIBRARIES c++ -lc++)
+endif()
 
 # Compiler flags
 set(CMAKE_C_COMPILER_TARGET ${SWIFT_ANDROID_TRIPLE})
@@ -37,7 +46,7 @@ if(NOT IS_DIRECTORY "${ANDROID_CLANG_RESOURCE_DIR}")
 endif()
 
 # C/C++
-set(CMAKE_C_FLAGS "-fPIC")
+string(APPEND CMAKE_C_FLAGS " -fPIC")
 
 # Swift
 set(CMAKE_Swift_COMPILER "${CMAKE_CURRENT_LIST_DIR}/swiftc-wrapper.sh")
@@ -47,18 +56,28 @@ set(CMAKE_Swift_FLAGS "\
     -Xcc -resource-dir -Xcc ${ANDROID_CLANG_RESOURCE_DIR} \
     -tools-directory ${ANDROID_TOOLCHAIN_ROOT}/bin \
     -sdk ${SWIFT_ANDROID_SDK}/swift-android/ndk-sysroot \
-    -module-cache-path ${CMAKE_BINARY_DIR}/swift-module-cache \
-    -lFoundationEssentials \
-    -l_FoundationCollections \
-    -l_FoundationCShims \
-    -lswiftSynchronization \
-    -ldispatch \
-    -lBlocksRuntime \
-    -landroid \
-    -lc++_shared \
-    -llog \
-    -lm"
+    -module-cache-path ${CMAKE_BINARY_DIR}/swift-module-cache"
 )
+set(_swift_android_libraries
+    FoundationEssentials
+    _FoundationCollections
+    _FoundationCShims
+    swiftSynchronization
+    dispatch
+    BlocksRuntime
+    android
+    ${LIBCXX_NAME}
+)
+if(_android_stl_kind STREQUAL "static")
+    list(APPEND _swift_android_libraries c++abi)
+endif()
+list(APPEND _swift_android_libraries log m)
+set(CMAKE_Swift_STANDARD_LIBRARIES "")
+foreach(library IN LISTS _swift_android_libraries)
+    string(APPEND CMAKE_Swift_STANDARD_LIBRARIES " -l${library}")
+endforeach()
+unset(library)
+unset(_swift_android_libraries)
 
 set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
