@@ -66,9 +66,19 @@ function(add_swift_library target source_dir)
     include(ExternalProject)
     swift_android_resolve_inputs()
     cmake_parse_arguments(SWIFT_LIBRARY "" "" "BUILD_BYPRODUCTS;CMAKE_ARGS" ${ARGN})
-    list(GET SWIFT_LIBRARY_BUILD_BYPRODUCTS 0 library_file)
-    set(dependent_libraries ${SWIFT_LIBRARY_BUILD_BYPRODUCTS})
-    list(REMOVE_AT dependent_libraries 0)
+    if(SWIFT_LIBRARY_BUILD_BYPRODUCTS)
+        list(GET SWIFT_LIBRARY_BUILD_BYPRODUCTS 0 library_file)
+        list(LENGTH SWIFT_LIBRARY_BUILD_BYPRODUCTS byproducts_count)
+        if(byproducts_count GREATER 1)
+            set(dependent_libraries ${SWIFT_LIBRARY_BUILD_BYPRODUCTS})
+            list(REMOVE_AT dependent_libraries 0)
+        endif()
+        set(build_byproducts BUILD_BYPRODUCTS ${SWIFT_LIBRARY_BUILD_BYPRODUCTS})
+    else()
+        set(build_byproducts BUILD_BYPRODUCTS
+            <BINARY_DIR>/${CMAKE_SHARED_LIBRARY_PREFIX}${target}${CMAKE_SHARED_LIBRARY_SUFFIX}
+        )
+    endif()
 
     set(external_target "lib${target}")
     ExternalProject_Add(${external_target}
@@ -83,9 +93,14 @@ function(add_swift_library target source_dir)
         BUILD_COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR>
         INSTALL_COMMAND ${CMAKE_COMMAND} --install <BINARY_DIR>
         BUILD_ALWAYS TRUE
-        BUILD_BYPRODUCTS ${SWIFT_LIBRARY_BUILD_BYPRODUCTS}
+        ${build_byproducts}
     )
     ExternalProject_Get_Property(${external_target} INSTALL_DIR)
+    ExternalProject_Get_Property(${external_target} BINARY_DIR)
+
+    if(NOT library_file)
+        set(library_file "${BINARY_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}${target}${CMAKE_SHARED_LIBRARY_SUFFIX}")
+    endif()
 
     set(include_dir "${INSTALL_DIR}/include")
     file(MAKE_DIRECTORY "${include_dir}")
