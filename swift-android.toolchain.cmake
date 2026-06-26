@@ -2,14 +2,6 @@
 #
 # SPDX-License-Identifier: MIT
 
-if(NOT DEFINED SWIFT_VERSION)
-    message(FATAL_ERROR "SWIFT_VERSION is required")
-endif()
-
-include("${CMAKE_CURRENT_LIST_DIR}/swift-macros.cmake")
-
-# Inferred
-swift_android_resolve_inputs()
 list(APPEND CMAKE_TRY_COMPILE_PLATFORM_VARIABLES
     CMAKE_ANDROID_NDK
     ANDROID_ABI
@@ -17,6 +9,11 @@ list(APPEND CMAKE_TRY_COMPILE_PLATFORM_VARIABLES
     ANDROID_STL
     SWIFT_VERSION
 )
+if(NOT DEFINED SWIFT_VERSION)
+    message(FATAL_ERROR "SWIFT_VERSION is required")
+endif()
+include("${CMAKE_CURRENT_LIST_DIR}/swift-macros.cmake")
+swift_android_resolve_inputs()
 
 # Start from the official NDK toolchain
 include("${CMAKE_ANDROID_NDK}/build/cmake/android.toolchain.cmake")

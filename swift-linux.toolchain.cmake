@@ -2,10 +2,12 @@
 #
 # SPDX-License-Identifier: MIT
 
+list(APPEND CMAKE_TRY_COMPILE_PLATFORM_VARIABLES
+    SWIFT_VERSION
+)
 if(NOT DEFINED SWIFT_VERSION)
     message(FATAL_ERROR "SWIFT_VERSION is required")
 endif()
-
 include("${CMAKE_CURRENT_LIST_DIR}/swift-macros.cmake")
 
 # Compilers and flags
