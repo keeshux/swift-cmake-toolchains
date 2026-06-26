@@ -2,8 +2,9 @@
 #
 # SPDX-License-Identifier: MIT
 
-if(NOT DEFINED ENV{SWIFT_VERSION} OR "$ENV{SWIFT_VERSION}" STREQUAL "")
-    message(FATAL_ERROR "SWIFT_VERSION must be defined")
+include("${CMAKE_CURRENT_LIST_DIR}/swift-macros.cmake")
+if(NOT SWIFT_VERSION)
+    set(SWIFT_VERSION "6.3.1")
 endif()
 
 set(CMAKE_C_COMPILER "clang")
@@ -11,7 +12,7 @@ set(CMAKE_CXX_COMPILER "clang")
 set(CMAKE_C_FLAGS "-fPIC")
 
 # Infer from Swift version
-set(SWIFT_RESOURCE_DIR $ENV{HOME}/.local/share/swiftly/toolchains/$ENV{SWIFT_VERSION}/usr/lib/swift_static)
+set(SWIFT_RESOURCE_DIR $ENV{HOME}/.local/share/swiftly/toolchains/${SWIFT_VERSION}/usr/lib/swift_static)
 if(NOT IS_DIRECTORY "${SWIFT_RESOURCE_DIR}")
     message(FATAL_ERROR "SWIFT_RESOURCE_DIR must point to an existing directory: ${SWIFT_RESOURCE_DIR}")
 endif()
