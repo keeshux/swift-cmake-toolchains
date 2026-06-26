@@ -13,17 +13,9 @@ list(APPEND CMAKE_TRY_COMPILE_PLATFORM_VARIABLES
 )
 
 # Start from the official NDK toolchain
-set(_swift_android_cxx_implicit_excludes "$ENV{CMAKE_CXX_IMPLICIT_LINK_LIBRARIES_EXCLUDE}")
-list(APPEND _swift_android_cxx_implicit_excludes c++ -lc++)
-list(REMOVE_DUPLICATES _swift_android_cxx_implicit_excludes)
-set(ENV{CMAKE_CXX_IMPLICIT_LINK_LIBRARIES_EXCLUDE} "${_swift_android_cxx_implicit_excludes}")
-unset(_swift_android_cxx_implicit_excludes)
 include("${CMAKE_ANDROID_NDK}/build/cmake/android.toolchain.cmake")
 if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/swift-android-post.toolchain.cmake")
     include("${CMAKE_CURRENT_LIST_DIR}/swift-android-post.toolchain.cmake")
-endif()
-if(DEFINED CMAKE_CXX_IMPLICIT_LINK_LIBRARIES)
-    list(REMOVE_ITEM CMAKE_CXX_IMPLICIT_LINK_LIBRARIES c++ -lc++)
 endif()
 
 # Compiler flags
@@ -66,7 +58,7 @@ set(_swift_android_libraries
     dispatch
     BlocksRuntime
     android
-    ${LIBCXX_NAME}
+    ${ANDROID_STL}
 )
 if(_android_stl_kind STREQUAL "static")
     list(APPEND _swift_android_libraries c++abi)

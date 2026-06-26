@@ -33,12 +33,6 @@ macro(swift_android_resolve_inputs)
     list(GET _swift_android_toolchains 0 ANDROID_TOOLCHAIN_ROOT)
     unset(_swift_android_toolchains)
 
-    set(LIBCXX_NAME "${ANDROID_STL}")
-    if(_android_stl_kind STREQUAL "shared")
-        set(LIBCXX_TRIPLE "${SWIFT_ANDROID_ARCH}-linux-android")
-        set(LIBCXX_FILE "${ANDROID_TOOLCHAIN_ROOT}/sysroot/usr/lib/${LIBCXX_TRIPLE}/lib${LIBCXX_NAME}.so")
-    endif()
-
     string(REPLACE "android-" "android" _android_platform "${ANDROID_PLATFORM}")
     set(SWIFT_ANDROID_SDK "$ENV{HOME}/.swiftpm/swift-sdks/swift-${SWIFT_VERSION}-RELEASE_android.artifactbundle")
     set(SWIFT_ANDROID_TRIPLE "${SWIFT_ANDROID_ARCH}-unknown-linux-${_android_platform}")
@@ -115,13 +109,5 @@ function(add_swift_library target source_dir)
         set_target_properties(${target} PROPERTIES
             IMPORTED_LINK_DEPENDENT_LIBRARIES "${dependent_libraries}"
         )
-    endif()
-
-    if(_android_stl_kind STREQUAL "shared")
-        add_library(SwiftAndroid::cxx_shared SHARED IMPORTED GLOBAL)
-        set_target_properties(SwiftAndroid::cxx_shared PROPERTIES
-            IMPORTED_LOCATION "${LIBCXX_FILE}"
-        )
-        target_link_libraries(${target} INTERFACE SwiftAndroid::cxx_shared)
     endif()
 endfunction()
