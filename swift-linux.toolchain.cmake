@@ -2,14 +2,16 @@
 #
 # SPDX-License-Identifier: MIT
 
-include("${CMAKE_CURRENT_LIST_DIR}/swift-macros.cmake")
-if(NOT SWIFT_VERSION)
-    set(SWIFT_VERSION "6.3.1")
+if(NOT DEFINED SWIFT_VERSION)
+    message(FATAL_ERROR "SWIFT_VERSION is required")
 endif()
 
+include("${CMAKE_CURRENT_LIST_DIR}/swift-macros.cmake")
+
+# Compilers and flags
 set(CMAKE_C_COMPILER "clang")
 set(CMAKE_CXX_COMPILER "clang")
-set(CMAKE_C_FLAGS "-fPIC")
+string(APPEND CMAKE_C_FLAGS " -fPIC")
 
 # Infer from Swift version
 set(SWIFT_RESOURCE_DIR $ENV{HOME}/.local/share/swiftly/toolchains/${SWIFT_VERSION}/usr/lib/swift_static)
