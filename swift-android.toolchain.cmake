@@ -3,6 +3,16 @@
 # SPDX-License-Identifier: MIT
 
 include("${CMAKE_CURRENT_LIST_DIR}/swift-macros.cmake")
+
+# Fallbacks
+if(NOT SWIFT_VERSION)
+    set(SWIFT_VERSION "6.3.1")
+endif()
+if(NOT ANDROID_PLATFORM)
+    set(ANDROID_PLATFORM "android-28")
+endif()
+
+# Inferred
 swift_android_resolve_inputs()
 list(APPEND CMAKE_TRY_COMPILE_PLATFORM_VARIABLES
     CMAKE_ANDROID_NDK
@@ -18,10 +28,11 @@ if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/swift-android-post.toolchain.cmake")
     include("${CMAKE_CURRENT_LIST_DIR}/swift-android-post.toolchain.cmake")
 endif()
 
-# Compiler flags
+# Compilers and flags
 set(CMAKE_C_COMPILER_TARGET ${SWIFT_ANDROID_TRIPLE})
 set(CMAKE_CXX_COMPILER_TARGET ${SWIFT_ANDROID_TRIPLE})
 set(CMAKE_Swift_COMPILER_TARGET ${SWIFT_ANDROID_TRIPLE})
+string(APPEND CMAKE_C_FLAGS " -fPIC")
 
 # Inherit clang resource dir (e.g. for stddef.h and stdbool.h)
 execute_process(
@@ -36,9 +47,6 @@ endif()
 if(NOT IS_DIRECTORY "${ANDROID_CLANG_RESOURCE_DIR}")
     message(FATAL_ERROR "ANDROID_CLANG_RESOURCE_DIR must point to an existing directory: ${ANDROID_CLANG_RESOURCE_DIR}")
 endif()
-
-# C/C++
-string(APPEND CMAKE_C_FLAGS " -fPIC")
 
 # Swift
 set(CMAKE_Swift_COMPILER "${CMAKE_CURRENT_LIST_DIR}/swiftc-wrapper.sh")
