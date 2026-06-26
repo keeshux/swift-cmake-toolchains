@@ -2,15 +2,11 @@
 #
 # SPDX-License-Identifier: MIT
 
-include("${CMAKE_CURRENT_LIST_DIR}/swift-macros.cmake")
+if(NOT DEFINED SWIFT_VERSION)
+    message(FATAL_ERROR "SWIFT_VERSION is required")
+endif()
 
-# Fallbacks
-if(NOT SWIFT_VERSION)
-    set(SWIFT_VERSION "6.3.1")
-endif()
-if(NOT ANDROID_PLATFORM)
-    set(ANDROID_PLATFORM "android-28")
-endif()
+include("${CMAKE_CURRENT_LIST_DIR}/swift-macros.cmake")
 
 # Inferred
 swift_android_resolve_inputs()
