@@ -4,6 +4,56 @@
 
 set(SWIFT_CMAKE_TOOLCHAINS_PATH ${CMAKE_CURRENT_LIST_DIR})
 
+function(swift_copy_windows_runtime destination)
+    if(NOT WIN32)
+        return()
+    endif()
+
+    if(NOT DEFINED SWIFT_ROOT)
+        message(FATAL_ERROR "SWIFT_ROOT is required to locate the Swift runtime libraries")
+    endif()
+    if(NOT DEFINED SWIFT_VERSION)
+        message(FATAL_ERROR "SWIFT_VERSION is required")
+    endif()
+
+    set(SWIFT_RUNTIME_LIBRARIES
+        BlocksRuntime.dll
+        dispatch.dll
+        FoundationEssentials.dll
+        swiftCore.dll
+        swiftCRT.dll
+        swiftDispatch.dll
+        swiftWinSDK.dll
+        swift_Concurrency.dll
+        swift_RegexParser.dll
+        swift_StringProcessing.dll
+    )
+    list(GET SWIFT_RUNTIME_LIBRARIES 0 first_runtime_library)
+
+    set(runtime_dir_candidates
+        "${SWIFT_ROOT}/Runtimes/${SWIFT_VERSION}/usr/bin"
+    )
+    set(runtime_dir "")
+    foreach(candidate IN LISTS runtime_dir_candidates)
+        if(EXISTS "${candidate}/${first_runtime_library}")
+            set(runtime_dir "${candidate}")
+            break()
+        endif()
+    endforeach()
+    if(NOT runtime_dir)
+        message(FATAL_ERROR "Unable to locate Swift runtime libraries under SWIFT_ROOT: ${SWIFT_ROOT}")
+    endif()
+
+    file(MAKE_DIRECTORY "${destination}")
+    foreach(library IN LISTS SWIFT_RUNTIME_LIBRARIES)
+        set(runtime_library "${runtime_dir}/${library}")
+        if(NOT EXISTS "${runtime_library}")
+            message(FATAL_ERROR "Missing Swift runtime library: ${runtime_library}")
+        endif()
+        file(COPY "${runtime_library}" DESTINATION "${destination}")
+    endforeach()
+endfunction()
+
 macro(swift_android_resolve_inputs)
     if(NOT CMAKE_ANDROID_NDK)
         message(FATAL_ERROR "CMAKE_ANDROID_NDK must be defined")
