@@ -9,8 +9,8 @@ function(swift_copy_windows_runtime destination)
         return()
     endif()
 
-    if(NOT DEFINED SWIFT_SDKROOT)
-        message(FATAL_ERROR "SWIFT_SDKROOT is required to locate the Swift runtime libraries")
+    if(NOT DEFINED SWIFT_ROOT)
+        message(FATAL_ERROR "SWIFT_ROOT is required to locate the Swift runtime libraries")
     endif()
     if(NOT DEFINED SWIFT_VERSION)
         message(FATAL_ERROR "SWIFT_VERSION is required to locate the Swift runtime libraries")
@@ -30,20 +30,8 @@ function(swift_copy_windows_runtime destination)
     )
     list(GET SWIFT_RUNTIME_LIBRARIES 0 first_runtime_library)
 
-    set(swift_windows_sdk "${SWIFT_SDKROOT}/swift-${SWIFT_VERSION}-RELEASE_windows.artifactbundle")
     set(runtime_dir_candidates
-        "${swift_windows_sdk}/swift-windows/swift-resources/usr/bin"
-        "${swift_windows_sdk}/swift-windows/swift-resources/usr/lib/swift/windows"
-        "${swift_windows_sdk}/swift-windows/usr/bin"
-        "${swift_windows_sdk}/swift-windows/usr/lib/swift/windows"
-        "${swift_windows_sdk}/usr/bin"
-        "${swift_windows_sdk}/usr/lib/swift/windows"
-        "${SWIFT_SDKROOT}/swift-windows/swift-resources/usr/bin"
-        "${SWIFT_SDKROOT}/swift-windows/swift-resources/usr/lib/swift/windows"
-        "${SWIFT_SDKROOT}/swift-windows/usr/bin"
-        "${SWIFT_SDKROOT}/swift-windows/usr/lib/swift/windows"
-        "${SWIFT_SDKROOT}/usr/bin"
-        "${SWIFT_SDKROOT}/usr/lib/swift/windows"
+        "${SWIFT_ROOT}/Runtimes/${SWIFT_VERSION}/usr/bin"
     )
     set(runtime_dir "")
     foreach(candidate IN LISTS runtime_dir_candidates)
@@ -53,7 +41,7 @@ function(swift_copy_windows_runtime destination)
         endif()
     endforeach()
     if(NOT runtime_dir)
-        message(FATAL_ERROR "Unable to locate Swift runtime libraries under SWIFT_SDKROOT: ${SWIFT_SDKROOT}")
+        message(FATAL_ERROR "Unable to locate Swift runtime libraries under SWIFT_ROOT: ${SWIFT_ROOT}")
     endif()
 
     file(MAKE_DIRECTORY "${destination}")
