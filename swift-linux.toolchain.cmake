@@ -3,11 +3,9 @@
 # SPDX-License-Identifier: MIT
 
 list(APPEND CMAKE_TRY_COMPILE_PLATFORM_VARIABLES
+    SWIFT_RESOURCE_DIR
     SWIFT_VERSION
 )
-if(NOT DEFINED SWIFT_VERSION)
-    message(FATAL_ERROR "SWIFT_VERSION is required")
-endif()
 include("${CMAKE_CURRENT_LIST_DIR}/swift-macros.cmake")
 
 # Compilers and flags
@@ -15,8 +13,16 @@ set(CMAKE_C_COMPILER "clang")
 set(CMAKE_CXX_COMPILER "clang")
 string(APPEND CMAKE_C_FLAGS " -fPIC")
 
-# Infer from Swift version
-set(SWIFT_RESOURCE_DIR $ENV{HOME}/.local/share/swiftly/toolchains/${SWIFT_VERSION}/usr/lib/swift_static)
+# Infer from swiftc on PATH. compnerd/gha-setup-swift installs it under $HOME/usr.
+if(NOT DEFINED SWIFT_RESOURCE_DIR)
+    find_program(SWIFT_EXECUTABLE swiftc REQUIRED)
+    get_filename_component(SWIFT_BIN_DIR "${SWIFT_EXECUTABLE}" DIRECTORY)
+    get_filename_component(SWIFT_ROOT "${SWIFT_BIN_DIR}/.." ABSOLUTE)
+    set(SWIFT_RESOURCE_DIR "${SWIFT_ROOT}/lib/swift_static")
+endif()
+if(NOT IS_DIRECTORY "${SWIFT_RESOURCE_DIR}" AND DEFINED ENV{HOME})
+    set(SWIFT_RESOURCE_DIR "$ENV{HOME}/usr/lib/swift_static")
+endif()
 if(NOT IS_DIRECTORY "${SWIFT_RESOURCE_DIR}")
     message(FATAL_ERROR "SWIFT_RESOURCE_DIR must point to an existing directory: ${SWIFT_RESOURCE_DIR}")
 endif()
